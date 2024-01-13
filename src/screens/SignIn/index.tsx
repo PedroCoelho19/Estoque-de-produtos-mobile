@@ -1,120 +1,111 @@
-
 import React, { useEffect, useRef, useState } from "react";
-
-import { View, Text, Animated, StyleSheet, Image, TextInput, Platform, TouchableOpacity, KeyboardAvoidingView, Easing, Keyboard } from "react-native";
-
+import {
+  View,
+  Text,
+  Animated,
+  StyleSheet,
+  Image,
+  TextInput,
+  Platform,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Easing,
+  Keyboard,
+} from "react-native";
 
 export default function SignIn() {
-  const [logo] =  useState(new Animated.ValueXY({x: 300, y: 200}));
-  const altAnimada = useRef(new Animated.Value(28)).current;
-  const [opacityLogo] =  useState(new Animated.Value(1));
-  const [opacity] =  useState(new Animated.Value(0));
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const imageSize = useRef(new Animated.Value(300)).current;
+  const imageWidth = useRef(new Animated.Value(500)).current;
+  const marginTop = useRef(new Animated.Value(50)).current;
+  const marginBottom = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
-   Keyboard.addListener('keyboardDidShow', keyboardDidShow);
-    Keyboard.addListener('keyboardDidHide', keyboardDidHide); 
-
-   function startAnimation() {
-  setTimeout(() => {
-    Animated.parallel([
-      Animated.timing(altAnimada, {
-        toValue: 45,
-        duration: 300,
-        delay: 10,
-        useNativeDriver: false,
-        easing: Easing.linear,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 800,
-        delay: 15,
-        useNativeDriver: false,
-        easing: Easing.linear,
-      }),
-    ]).start();
-  }, 1000);
-}
-
-    startAnimation()
-    return () => {
-      Keyboard.removeAllListeners('keyboardDidShow')
-    }
-
-  }, []);
-
-     //Teclado Aberto
-     function keyboardDidShow () {
-      Animated.parallel([
-        Animated.timing(logo.y, {
-          toValue: (Platform.OS === 'android' ? 150 : 150),
-          duration: 0,
-          useNativeDriver:false
-        }),
-        Animated.timing(logo.x, {
-          toValue: (Platform.OS === 'android' ? 200 : 200),
-          duration: 0,
-          useNativeDriver:false
-        }),
-        Animated.timing(opacityLogo, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver:true
-        }),
-    ]).start();
-    }
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setKeyboardOpen(true);
+      }
+    );
   
-    //Teclado Fechou
-    function keyboardDidHide () {
-      Animated.parallel([
-        Animated.timing(logo.y, {
-          toValue: 200,
-          duration: 150,
-          useNativeDriver:false
-        }),
-        Animated.timing(logo.x, {
-          toValue: 300,
-          duration: 150,
-          useNativeDriver:false
-        })
-      ]).start();
-    }
+    const keyboardWillHideListener = Keyboard.addListener(
+      "keyboardWillHide",
+      () => {
+        setKeyboardOpen(false);
+        const toValue = keyboardOpen ? 300 : 150;
+  
+        Animated.parallel([
+          Animated.timing(imageSize, {
+            toValue,
+            duration: 250,
+            easing: Easing.ease,
+            useNativeDriver: false,
+          }),
+          Animated.timing(imageWidth, {
+            toValue: keyboardOpen ? 500 : 300,
+            duration: 250,
+            easing: Easing.ease,
+            useNativeDriver: false,
+          }),
+          Animated.timing(marginTop, {
+            toValue: keyboardOpen ? 50 : 0,
+            duration: 250,
+            easing: Easing.ease,
+            useNativeDriver: false,
+          }),
+          Animated.timing(marginBottom, {
+            toValue: keyboardOpen ? 50 : 0,
+            duration: 250,
+            easing: Easing.ease,
+            useNativeDriver: false,
+          }),
+        ]).start();
+      }
+    );
+  
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, [keyboardOpen, imageSize, imageWidth, marginTop, marginBottom]);
 
-  let porcentagemAltura = altAnimada.interpolate({
-      inputRange: [50, 100],
-      outputRange: ['5%', '100%'],
-  })
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-    <View style={styles.container}>
-      <Text style={styles.text}>Controle de Estoque</Text>
-      <Image
-        source={require("../../../assets/controle-de-estoque.jpg")}
-        style={[styles.image, {width: logo.x, height: logo.y}]}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Digite seu nome"
-        placeholderTextColor="#999"
-        textAlign="center"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Digite sua senha"
-        secureTextEntry={true}
-        placeholderTextColor="#999"
-        textAlign="center"
-      />
+      <View style={styles.container}>
+        <Text style={styles.text}>Controle de Estoque</Text>
+        <Animated.Image
+          source={require("../../../assets/controle-de-estoque.jpg")}
+          style={[
+            styles.image,
+            { height: imageSize, width: imageWidth, marginTop, marginBottom },
+          ]}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu nome"
+          placeholderTextColor="#999"
+          textAlign="center"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Digite sua senha"
+          secureTextEntry={true}
+          placeholderTextColor="#999"
+          textAlign="center"
+        />
 
-      <TouchableOpacity  style={styles.loginButton}>
-        <Text style={styles.loginButtonText}>Entrar</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.loginButton}>
+          <Text style={styles.loginButtonText}>Entrar</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   background: {
@@ -135,8 +126,11 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   image: {
+    width: 200,
+    height: 300,
     resizeMode: "contain",
-    marginBottom: 20,
+    marginBottom: 50,
+    marginTop: 50,
   },
   input: {
     height: 40,
